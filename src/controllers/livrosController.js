@@ -70,17 +70,10 @@ export class LivroController {
   };
 
   static listarLivroPorFiltro = async (req, res, next) => {
-    const { editora, titulo } = req.query;
-
-    // https://www.mongodb.com/docs/manual/reference/operator/query/
-    // const regex = new RegExp(titulo, "i");  Exemplo 1
-    const busca = {};
-
-    if (editora) busca.editora = editora;
-    // if (titulo) busca.titulo = regex; Exemplo 1
-    if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
 
     try {
+      const busca = processaBusca(req.query);
+
       const livroResultado = await livros.find(busca);
 
       res.status(200).send(livroResultado);
@@ -89,4 +82,26 @@ export class LivroController {
     }
 
   };
+}
+
+function processaBusca(parametros) {
+
+  const { editora, titulo, minPaginas, maxPaginas } = parametros;
+
+  // https://www.mongodb.com/docs/manual/reference/operator/query/
+  // const regex = new RegExp(titulo, "i");  Exemplo 1
+  const busca = {};
+
+  if (editora) busca.editora = editora;
+  // if (titulo) busca.titulo = regex; Exemplo 1
+  if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
+
+  if (minPaginas || maxPaginas) busca.numeroPaginas = {};
+
+  // gte = Greater Than or Equal = Maior ou igual que
+  if (minPaginas) busca.numeroPaginas.$gte = minPaginas;
+  // let = Less Than or Equal = Menor ou igual que
+  if (maxPaginas) busca.numeroPaginas.$lte = maxPaginas;
+
+  return busca;
 }
