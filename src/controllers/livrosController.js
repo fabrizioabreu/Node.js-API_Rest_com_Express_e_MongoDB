@@ -74,11 +74,15 @@ export class LivroController {
     try {
       const busca = await processaBusca(req.query);
 
-      const livroResultado = await livros
-        .find(busca)
-        .populate("autor");
+      if (busca !== null) {
+        const livroResultado = await livros
+          .find(busca)
+          .populate("autor");
 
-      res.status(200).send(livroResultado);
+        res.status(200).send(livroResultado);
+      } else {
+        res.status(200).send([]);
+      }
     } catch (error) {
       next(error);
     }
@@ -90,7 +94,7 @@ async function processaBusca(parametros) {
 
   const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = parametros;
   // https://www.mongodb.com/docs/manual/reference/operator/query/
-  const busca = {};
+  let busca = {};
 
   if (editora) busca.editora = editora;
   if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
@@ -104,8 +108,12 @@ async function processaBusca(parametros) {
 
   if (nomeAutor) {
     const autor = await autores.findOne({ nome: nomeAutor });
-    const autorID = autor._id;
-    busca.autor = autorID;
+
+    if (autor !== null) {
+      busca.autor = autor._id;
+    } else {
+      busca = null;
+    }
   }
 
   return busca;
