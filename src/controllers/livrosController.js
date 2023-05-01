@@ -72,10 +72,13 @@ export class LivroController {
   static listarLivroPorFiltro = async (req, res, next) => {
     const { editora, titulo } = req.query;
 
+    // https://www.mongodb.com/docs/manual/reference/operator/query/
+    // const regex = new RegExp(titulo, "i");  Exemplo 1
     const busca = {};
 
     if (editora) busca.editora = editora;
-    if (titulo) busca.titulo = titulo;
+    // if (titulo) busca.titulo = regex; Exemplo 1
+    if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
 
     try {
       const livroResultado = await livros.find(busca);
